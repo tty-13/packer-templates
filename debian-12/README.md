@@ -4,8 +4,11 @@ This creates a very bare Debian bookworm VM template for proxmox with the follow
 - Q35 machine and UEFI bios
 - 2G ram and 1 cpu core
 - Cloud-init
+- SSH public key only authentication
 
-Rename *credentials.template* to *credentials.pkr.hcl* and fill in your credentials.
+Rename *credentials.template* to *credentials.pkr.hcl*. Also don't forget to set your credentials
+for communicating with the Proxmox API in the parent folder (*../proxmox_api_credentials.pkr.hcl*)
+
 Proxmox should be able to reach your packer machine, either through VPN or NAT rules or whatever.
 
 Run with ./build.sh
