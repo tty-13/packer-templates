@@ -187,13 +187,6 @@ EOF
 # ___]   |   ___]  |  |___ |  |  |__/
 #
 
-# Don't start getty prompt until cloud-init has finished
-mkdir -p /etc/systemd/system/cloud-init.service.d
-cat <<EOF > /etc/systemd/system/cloud-init.service.d/getty.conf
-[Unit]
-Before=getty@tt1.service
-EOF
-
 # Configure cloud-init to start once multi-user has been started.
 systemctl add-wants multi-user.target cloud-init.target
 
@@ -203,6 +196,11 @@ mkdir --parents "$(dirname "$SYSTEMD_NO_CLEAR_FILE")"
 cat <<EOF > "$SYSTEMD_NO_CLEAR_FILE"
 [Service]
 TTYVTDisallocate=no
+EOF
+# Don't start getty prompt until cloud-init has finished
+cat <<EOF > /etc/systemd/system/getty@tty1.service.d/wait-cloud-init.conf
+[Unit]
+After=cloud-init.target
 EOF
 systemctl daemon-reload
 
