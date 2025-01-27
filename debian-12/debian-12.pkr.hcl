@@ -10,7 +10,10 @@
 
 */
 
-# DEPENDENCIES
+# ___  ____ ___  ____ _  _ ___  ____ _  _ ____ _ ____ ____
+# |  \ |___ |__] |___ |\ | |  \ |___ |\ | |    | |___ [__
+# |__/ |___ |    |___ | \| |__/ |___ | \| |___ | |___ ___]
+#
 packer {
   required_plugins {
     proxmox = {
@@ -21,7 +24,11 @@ packer {
 }
 
 
-# VARIABLES
+# _  _ ____ ____ _ ____ ___  _    ____ ____
+# |  | |__| |__/ | |__| |__] |    |___ [__
+#  \/  |  | |  \ | |  | |__] |___ |___ ___]
+#
+
 variable "proxmox_api_url" {
   type = string
 }
@@ -59,7 +66,11 @@ variable "balloon" {
 }
 
 
-# PROXMOX VM MACHINE
+# ___  ____ ____ _  _ _  _ ____ _  _    _  _ _  _    _  _ ____ ____ _  _ _ _  _ ____
+# |__] |__/ |  |  \/  |\/| |  |  \/     |  | |\/|    |\/| |__| |    |__| | |\ | |___
+# |    |  \ |__| _/\_ |  | |__| _/\_     \/  |  |    |  | |  | |___ |  | | | \| |___
+#
+
 source "proxmox-iso" "debian-12" {
 
   # Proxmox Connection Settings
@@ -146,7 +157,7 @@ source "proxmox-iso" "debian-12" {
   # HTTP Server to provision the config files
   http_directory = "preseed"
   # (Optional) Bind IP Address and Port
-  # http_bind_address       = "82.66.196.45"
+  # http_bind_address       = "0.0.0.0"
   http_port_min           = 8802
   http_port_max           = 8802
 
@@ -157,7 +168,11 @@ source "proxmox-iso" "debian-12" {
 }
 
 
-# BUILD TEMPLATE
+# ___  _  _ _ _    ___     ___ ____ _  _ ___  _    ____ ___ ____
+# |__] |  | | |    |  \     |  |___ |\/| |__] |    |__|  |  |___
+# |__] |__| | |___ |__/     |  |___ |  | |    |___ |  |  |  |___
+#
+
 build {
 
   name    = "debian-12-template"
@@ -173,21 +188,6 @@ build {
   provisioner "shell" {
     inline = [
        "sh -cx 'sudo bash /tmp/post-install.sh'"
-# Fix that annoying Debian bug (#790955) that has been around for ~10 years..
-      # "wget https://www.kernel.org/pub/linux/utils/kbd/kbd-2.7.1.tar.gz -O /tmp/kbd-2.7.1.tar.gz",
-      # "cd /tmp && tar xzf kbd-2.7.1.tar.gz",
-      # "mkdir -p /usr/share/keymaps",
-      # "cp -Rp /tmp/kbd-2.7.1/data/keymaps/* /usr/share/keymaps/",
-      # "localectl set-keymap fr-pc",
-      # # Clean-up and initialize cloud-init
-      # "apt -y autoremove --purge",
-      # "apt -y clean",
-      # "apt -y autoclean",
-      # "rm /etc/ssh/ssh_host_*",
-      # "truncate -s 0 /etc/machine-id",
-      # "cloud-init clean",
-      # "echo 'datasource_list: [ConfigDrive, NoCloud]' > /etc/cloud/cloud.cfg.d/99_pve.cfg",
-      # "sync"
     ]
   }
 }
