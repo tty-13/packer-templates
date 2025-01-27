@@ -14,6 +14,7 @@
 # |  \ |___ |__] |___ |\ | |  \ |___ |\ | |    | |___ [__
 # |__/ |___ |    |___ | \| |__/ |___ | \| |___ | |___ ___]
 #
+
 packer {
   required_plugins {
     proxmox = {
@@ -83,7 +84,7 @@ source "proxmox-iso" "debian-12" {
   node                 = "tty13"
   vm_id                = "500"
   vm_name              = "debian-12-template"
-  template_description = "Debian 12.8.0 Image"
+  template_description = "Debian 12.8.0 Bare template"
   tags                 = "T" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
