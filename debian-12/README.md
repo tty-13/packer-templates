@@ -10,4 +10,4 @@ Proxmox should be able to reach your packer machine, either through VPN or NAT r
 
 Run with ./build.sh
 
-For best security practices you should create a packer-only API token on PVE.
+For best security practices you should create a packer-only API token with only the relevant permissions on PVE.
