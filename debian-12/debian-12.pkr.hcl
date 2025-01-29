@@ -40,6 +40,9 @@ variable "proxmox_api_token_secret" {
   type      = string
   sensitive = true
 }
+variable "packer_srv" {
+  type      = string
+}
 ///
 variable "ssh_username" {
   type = string
@@ -158,7 +161,7 @@ source "proxmox-iso" "debian-12" {
   # HTTP Server to provision the config files
   http_directory = "preseed"
   # (Optional) Bind IP Address and Port
-  # http_bind_address       = "0.0.0.0"
+  http_bind_address       = "${var.packer_srv}"
   http_port_min           = 8802
   http_port_max           = 8802
 
