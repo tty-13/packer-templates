@@ -254,11 +254,16 @@ source "proxmox-iso" "opnsense" {
     ssd          = true
   }
 
+
+
   # CD to provision the config.xml
   additional_iso_files {
-    iso_storage_pool = "local"
-    cd_files         = ["./cdrom/*"]
-    cd_label         = "config"
+    iso_storage_pool  = "local"
+    cd_files          = ["./cdrom/*"]
+    cd_label          = "config"
+    unmount           = true
+    keep_cdrom_device = true          # keep this to provide the config to the clones
+
   }
 
   # BOOT COMMAND
@@ -274,9 +279,9 @@ source "proxmox-iso" "opnsense" {
     # Install qemu-guest-agent
     "pkg install os-qemu-guest-agent<enter><wait15>y<enter><wait15>y<enter><wait15>",
     "sysrc qemu_guest_agent_enable=\"YES\"<enter><wait>",
-    # Install on UFS with otherwise default recommended options
+    # Install on UFS with otherwise default recommended options (also increase the wait time if needed)
     "opnsense-installer<enter><wait5><enter><wait2><down><enter><wait3>",
-    "d<enter><wait2>y<wait>y<wait10m>",
+    "d<enter><wait2>y<wait>y<wait8m>",
     # Change root password with the one we provided in the credentials file
     "r<enter><wait>${var.root_password}<enter><wait>${var.root_password}<enter>",
     # Reboot and login back

@@ -7,6 +7,7 @@ NOW="$(date +%s.%N | cut -b1-15)"
 # Make sure there are no leftovers from a previous build
 rm -f $HERE/packerkey*
 rm -f packerpwd.tmp
+cp $HERE/config.template $HERE/cdrom/conf/config.xml
 
 # Genereate new temporary credentials
 ssh-keygen -q -t ed25519 -N '' -C packer -f $HERE/packerkey

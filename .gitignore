@@ -1,3 +1,4 @@
 *credentials.pkr.hcl
 .directory
 opnsense/packerkey*
+opnsense/cdrom/conf/config.xml
