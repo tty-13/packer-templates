@@ -12,7 +12,7 @@ cp $HERE/config.template $HERE/cdrom/conf/config.xml
 # Genereate new temporary credentials
 ssh-keygen -q -t ed25519 -N '' -C packer -f $HERE/packerkey
 echo -n $(cat $HERE/packerkey.pub) | base64 -w0 > $HERE/packerkey.base64
-htpasswd -bnBC 10 "" $(pwgen -CnB1 32) | tr -d ':\n' > $HERE/packerpwd.tmp
+htpasswd -bnBC 11 "" $(pwgen -CnB1 32) | tr -d ':\n' > $HERE/packerpwd.tmp
 
 # timestamp the config file and expire the packer user the next day
 sed -e "s|<time>.*</time>|<time>$NOW</time>|" -i $CONF
