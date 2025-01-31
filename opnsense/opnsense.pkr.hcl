@@ -27,7 +27,7 @@
 packer {
   required_plugins {
     proxmox = {
-      version = "~>1.2.2"
+      version = "1.2.1"
       source  = "github.com/hashicorp/proxmox"
     }
   }
@@ -178,9 +178,9 @@ source "proxmox-iso" "opnsense" {
   # VM Definition
   node                 = "tty13"
   vm_id                = "500"
-  vm_name              = "opnsense-template"
+  vm_name              = "opnsense-T{{ isotime `0601`}}"
   template_description = "OPNsense 24.7 VM template"
-  tags                 = "T;fw;infra" # Semicolon separated list (e.g. "SaaS;infra")
+  tags                 = "t;fw;infra" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
   qemu_agent = true
@@ -313,7 +313,7 @@ build {
 
   provisioner "shell" {
     inline = [
-       "sh /tmp/post-install.sh"
+       "sudo sh /tmp/post-install.sh"
     ]
   }
 }

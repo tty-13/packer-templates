@@ -18,7 +18,7 @@
 packer {
   required_plugins {
     proxmox = {
-      version = "~>1.2.2"
+      version = "1.2.1"
       source  = "github.com/hashicorp/proxmox"
     }
   }
@@ -86,9 +86,9 @@ source "proxmox-iso" "debian-12" {
   # VM Definition
   node                 = "tty13"
   vm_id                = "501"
-  vm_name              = "debian-12-template"
+  vm_name              = "debian-12-T{{ isotime `0601`}}"
   template_description = "Debian 12.8.0 Bare template"
-  tags                 = "T" # Semicolon separated list (e.g. "SaaS;infra")
+  tags                 = "t" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
   qemu_agent = true
