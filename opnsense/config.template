@@ -274,7 +274,7 @@
     <firmware version="1.0.1">
       <mirror/>
       <flavour/>
-      <plugins/>
+      <plugins>os-qemu-guest-agent</plugins>
       <type/>
       <subscription/>
       <reboot/>
@@ -282,6 +282,7 @@
     <serialspeed>115200</serialspeed>
     <primaryconsole>video</primaryconsole>
     <secondaryconsole>serial</secondaryconsole>
+    <sudo_allow_wheel>2</sudo_allow_wheel>
   </system>
   <interfaces>
     <wan>
