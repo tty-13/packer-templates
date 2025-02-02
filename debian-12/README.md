@@ -5,6 +5,7 @@ This creates a very bare Debian bookworm VM template for proxmox with the follow
 - 2G ram and 1 cpu core
 - Cloud-init
 - SSH public key only authentication
+- ANSSI-compliant partitioning with remount hooks for maitenance
 
 Rename *credentials.template* to *credentials.pkr.hcl*. Also don't forget to set your credentials
 for communicating with the Proxmox API in the parent folder (*../proxmox_api_credentials.pkr.hcl*)
