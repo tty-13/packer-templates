@@ -1,8 +1,6 @@
 # Debian 12 bare VM
 This creates a very bare Debian bookworm VM template for proxmox with the following settings :
-- LVM on 10G scsi disk
 - Q35 machine and UEFI bios
-- 2G ram and 1 cpu core
 - Cloud-init
 - SSH public key only authentication
 - ANSSI-compliant partitioning with remount hooks for maitenance
