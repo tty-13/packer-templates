@@ -28,6 +28,7 @@ IFS=$'\n\t'
 # |__] |  \ |__| |__]
 #
 
+mount /boot -o remount
 # Reduce timeout
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
 # Disable consistent interface device naming and enable serial tty
@@ -37,6 +38,64 @@ sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/de
 # Apply grub changes
 grub-mkconfig -o /boot/grub/grub.cfg
 update-grub
+
+# ____ ____ ___ ____ ___
+# |___ [__   |  |__| |__]
+# |    ___]  |  |  | |__]
+#
+
+# Find EFI and put its UUID in provided fstab, then replace d-i-generated fstab with the proper one
+sed -i "s|XXXX-XXXX|$(findmnt --output=UUID --noheadings --target=/boot/efi)|" /tmp/fstab
+cat /tmp/fstab > /etc/fstab
+
+# Configure DPKG to remount the filesystem properly before and after it is run
+cat <<EOF > /usr/local/bin/dpkg-remount-pre
+#!/bin/sh
+echo "Running pre-dpkg remount hook"
+mount /usr -o remount,rw && echo "/usr remounted writable"
+mount /opt -o remount,rw && echo "/opt remounted writable"
+mount /tmp -o remount,exec && echo "/tmp remounted executable"
+mount /var/tmp -o remount,exec && echo "/var/tmp remounted executable"
+mount /var -o remount,exec && echo "/var remounted executable"
+if mount | grep /boot > /dev/null; then
+    echo "/boot already mounted"
+else
+    mount /boot && echo "/boot mounted"
+fi
+if mount | grep /boot/efi > /dev/null; then
+    echo "/boot/efi already mounted"
+else
+    mount /boot/efi && echo "/boot/efi mounted"
+fi
+EOF
+
+cat <<EOF > /usr/local/bin/dpkg-remount-post
+#!/bin/bash
+echo "Running post-dpkg remount hook"
+# Remount usr,opt,tmp,var with their default options
+mount /usr -o remount && echo "/usr remounted"
+mount /opt -o remount && echo "/opt remounted"
+mount /tmp -o remount && echo "/tmp remounted"
+mount /var/tmp -o remount && echo "/var/tmp remounted"
+mount /var -o remount && echo "/var remounted"
+# Unmount BOOT if it is set to noauto in fstab
+if [[ \$(grep "/boot.*noauto" /etc/fstab) > /dev/null ]] && [[ \$(grep "/boot/efi.*noauto" /etc/fstab) > /dev/null ]]; then
+  umount -qR /boot && echo "Boot partitions unmounted"
+else
+  echo "Boot partitions in fstab are not set to noauto, they will not be unmounted"
+fi
+EOF
+
+chmod +x /usr/local/bin/dpkg-remount-pre /usr/local/bin/dpkg-remount-post
+
+cat <<EOF > /etc/apt/apt.conf.d/50remount
+DPkg
+{
+    Pre-Invoke  { "/usr/local/bin/dpkg-remount-pre" };
+    Post-Invoke { "/usr/local/bin/dpkg-remount-post" };
+};
+EOF
+
 
 # ___  ____ ____ _  _ ____ ____ ____ ____
 # |__] |__| |    |_/  |__| | __ |___ [__
@@ -202,7 +261,6 @@ cat <<EOF > /etc/systemd/system/getty@tty1.service.d/wait-cloud-init.conf
 [Unit]
 After=cloud-init.target
 EOF
-systemctl daemon-reload
 
 # Configure the ACPI daemon to gently turn off the VM when the "power button" is pressed
 cp /usr/share/doc/acpid/examples/powerbtn /etc/acpi/events/powerbtn
@@ -215,6 +273,9 @@ systemctl enable qemu-guest-agent
 
 # Serial console
 systemctl enable serial-getty@ttyS0.service
+
+# Reload the daemon to take into account previous modifications
+systemctl daemon-reload
 
 # ____ _    ____ ____ _  _  _  _ ___
 # |    |    |___ |__| |\ |  |  | |__]
@@ -245,6 +306,7 @@ find \
   /var/lib/apt \
   /var/lib/dhcp \
   /var/log \
+  ! -name "audit" \
   -mindepth 1 -print -delete
 
 rm -vf \
@@ -267,7 +329,9 @@ chmod 664 /var/log/lastlog
 # Free all unused storage block.
 fstrim --all --verbose
 sync
-# Display some usage information to packer output
+# Display some disk, partition, and usage information to packer output
+lsblk
+fdisk -l
 df -h
 
 # Remove temporary sudoers file then remove this very script

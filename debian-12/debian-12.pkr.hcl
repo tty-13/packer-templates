@@ -58,11 +58,11 @@ variable "lan_bridge" {
 }
 variable "cpu_cores" {
   type    = string
-  default = "1"
+  default = "4"
 }
 variable "memory" {
   type    = string
-  default = "2048"
+  default = "8192"
 }
 variable "balloon" {
   type    = string
@@ -134,7 +134,18 @@ source "proxmox-iso" "debian-12" {
   # Storage
   scsi_controller = "virtio-scsi-single"
   disks {
-    disk_size    = "10G"
+    disk_size    = "64G"
+    format       = "raw"
+    storage_pool = "local-zfs"
+    type         = "scsi"
+    cache_mode   = "writeback"
+    io_thread    = true
+    asyncio      = "io_uring"
+    discard      = true
+    ssd          = true
+  }
+  disks {
+    disk_size    = "64G"
     format       = "raw"
     storage_pool = "local-zfs"
     type         = "scsi"
@@ -184,7 +195,11 @@ build {
 
   provisioner "file" {
     destination = "/tmp/post-install.sh"
-    source      = "post-install.sh"
+    source      = "files/post-install.sh"
+  }
+  provisioner "file" {
+    destination = "/tmp/fstab"
+    source      = "files/fstab"
   }
 
 
