@@ -58,7 +58,7 @@ variable "lan_bridge" {
 }
 variable "cpu_cores" {
   type    = string
-  default = "4"
+  default = "2"
 }
 variable "memory" {
   type    = string
