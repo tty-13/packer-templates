@@ -28,7 +28,7 @@ IFS=$'\n\t'
 # |__] |  \ |__| |__]
 #
 
-mount /boot -o remount
+mount /boot -vo remount
 # Reduce timeout
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
 # Disable consistent interface device naming and enable serial tty
@@ -36,7 +36,7 @@ sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0
 # Disable quiet boot
 sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
 # Apply grub changes
-grub-mkconfig -o /boot/grub/grub.cfg
+grub-mkconfig -vo /boot/grub/grub.cfg
 update-grub
 
 # ____ ____ ___ ____ ___
@@ -51,12 +51,12 @@ cat /tmp/fstab > /etc/fstab
 # Configure DPKG to remount the filesystem properly before and after it is run
 cat <<EOF > /usr/local/bin/dpkg-remount-pre
 #!/bin/sh
-echo "Running pre-dpkg remount hook"
-mount /usr -o remount,rw && echo "/usr remounted writable"
-mount /opt -o remount,rw && echo "/opt remounted writable"
-mount /tmp -o remount,exec && echo "/tmp remounted executable"
-mount /var/tmp -o remount,exec && echo "/var/tmp remounted executable"
-mount /var -o remount,exec && echo "/var remounted executable"
+echo "Running pre-dpkg remount hooks..."
+mount /usr -vo remount,rw && echo "/usr remounted writable"
+mount /opt -vo remount,rw && echo "/opt remounted writable"
+mount /tmp -vo remount,exec && echo "/tmp remounted executable"
+mount /var/tmp -vo remount,exec && "/var/tmp remounted executable"
+mount /var -vo remount,exec && echo "/var remounted executable"
 if mount | grep /boot > /dev/null; then
     echo "/boot already mounted"
 else
@@ -71,13 +71,12 @@ EOF
 
 cat <<EOF > /usr/local/bin/dpkg-remount-post
 #!/bin/bash
-echo "Running post-dpkg remount hook"
-# Remount usr,opt,tmp,var with their default options
-mount /usr -o remount && echo "/usr remounted"
-mount /opt -o remount && echo "/opt remounted"
-mount /tmp -o remount && echo "/tmp remounted"
-mount /var/tmp -o remount && echo "/var/tmp remounted"
-mount /var -o remount && echo "/var remounted"
+echo "Running post-dpkg remount hook..."
+mount /usr -vo remount && echo "/usr remounted "
+mount /opt -vo remount && echo "/opt remounted "
+mount /tmp -vo remount && echo "/tmp remounted "
+mount /var/tmp -vo remount && echo "/var/tmp remounted "
+mount /var -vo remount && echo "/var remounted "
 # Unmount BOOT if it is set to noauto in fstab
 if [[ \$(grep "/boot.*noauto" /etc/fstab) > /dev/null ]] && [[ \$(grep "/boot/efi.*noauto" /etc/fstab) > /dev/null ]]; then
   umount -qR /boot && echo "Boot partitions unmounted"
@@ -103,7 +102,7 @@ EOF
 #
 
 # Fix the keyboard mapping bug that has been around for >=10y...
-wget https://www.kernel.org/pub/linux/utils/kbd/kbd-2.7.1.tar.gz -O /tmp/kbd-2.7.1.tar.gz
+wget https://www.kernel.org/pub/linux/utils/kbd/kbd-2.7.1.tar.gz -vo /tmp/kbd-2.7.1.tar.gz
 cd /tmp && tar xzf kbd-2.7.1.tar.gz
 mkdir -p /usr/share/keymaps
 cp -Rp /tmp/kbd-2.7.1/data/keymaps/* /usr/share/keymaps/
@@ -136,6 +135,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install \
   rsync \
   tree \
   screen \
+  bash-completion \
+  command-not-found \
   --yes
 
 # Sysadmin tools
@@ -156,7 +157,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install \
 #
 
 # Networking set to auto
-cat << EOF > /etc/network/interfaces
+cat <<EOF > /etc/network/interfaces
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -171,6 +172,9 @@ auto eth0
 allow-hotplug eth0
 iface eth0 inet dhcp
 EOF
+
+update-alternatives --set editor /usr/bin/vim.basic
+
 
 # Configure Pollinate to use ubuntu entropy server
 sed -i 's/^SERVER=.*/SERVER="https:\/\/entropy.ubuntu.com\/"/' /etc/default/pollinate
@@ -329,6 +333,18 @@ chmod 664 /var/log/lastlog
 # Free all unused storage block.
 fstrim --all --verbose
 sync
+
+# ____ _  _ ___ ___  _  _ ___
+# |  | |  |  |  |__] |  |  |
+# |__| |__|  |  |    |__|  |
+#
+
+echo "\nPost-install script ended sucessfully, printing some info about the VM...\n"
+
+echo "The following executables have the suid bit set :"
+find / -perm -u=s -type f 2>/dev/null
+echo "\n"
+
 # Display some disk, partition, and usage information to packer output
 lsblk
 fdisk -l
