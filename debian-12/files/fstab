@@ -27,5 +27,5 @@ UUID=XXXX-XXXX                /boot/efi          vfat           umask=0077,noaut
 /dev/sr0                      /media/cdrom0      udf,iso9660    user,noauto                                0       0
 # Kernel
 devtmpfs                      /dev               devtmpfs       nosuid,noexec                              0       0
-tmpfs                         /dev/shm           tmpfs          nodev,nosuid,noexec,inode64,size=2G        0       0
+tmpfs                         /dev/shm           tmpfs          nodev,nosuid,noexec                        0       0
 proc                          /proc              proc           nodev,nosuid,noexec,hidepid=2              0       0
