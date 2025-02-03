@@ -2,8 +2,8 @@
 This creates a very bare Debian bookworm VM template for proxmox with the following settings :
 - Q35 machine and UEFI bios
 - Cloud-init
-- SSH public key only authentication
-- ANSSI-compliant partitioning with remount hooks for maitenance
+- SSH public-key-only authentication
+- ANSSI-compliant partitioning with remount hooks for maintenance
 
 Rename *credentials.template* to *credentials.pkr.hcl*. Also don't forget to set your credentials
 for communicating with the Proxmox API in the parent folder (*../proxmox_api_credentials.pkr.hcl*)
