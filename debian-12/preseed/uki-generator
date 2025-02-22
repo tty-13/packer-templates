@@ -1,0 +1,61 @@
+#!/bin/sh
+set -x
+
+# Configure Unified Kernel Image 
+cat <<EOF > /target/etc/kernel/cmdline
+root=/dev/mapper/vg_root-root net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0
+EOF
+
+cat <<EOF > /target/etc/kernel/install.conf
+layout=uki
+initrd_generator=dracut
+uki_generator=ukify
+EOF
+
+cat <<EOF > /target/etc/kernel/uki.conf
+[UKI]
+Cmdline=@/etc/kernel/cmdline
+EOF
+
+# Install systemd-boot (and ukify from bookworm-backports)
+# OVMF bios supports UEFI Secure Boot,# but in the current state,
+# this support is mainly used as a way to # test and provide compatibility rather
+# than really secure the VM. (Moreover, it does not provide a way to password
+# protect the firmware configuration, rendering Secure Boot pointless)
+# To further understand why it is not secure, see "Known Secure Boot limitations" :
+# https://www.linux-kvm.org/downloads/lersek/ovmf-whitepaper-c770f8c.txt
+# Hence, we only provide the required environment for secure boot to function,
+# but # do not go through the hassle of signing the UKI, since it will not
+# provide any added security benefit. This is more of an intent to future-proof
+# the image, in case OVMF actually provides a way to password-protect the firmware.
+mount -t sysfs /sys /target/sys/
+mount -o bind /sys/firmware/efi/efivars /target/sys/firmware/efi/efivars/
+in-target --pass-stdout sh -c "export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install systemd-boot python3-pefile --yes && apt-get install -t bookworm-backports systemd systemd-boot systemd-coredump systemd-resolved systemd-timesyncd --yes"
+
+# Reconfigure network interfaces to use the newly named devices
+cat <<EOF > /target/etc/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+allow-hotplug eth0
+iface eth0 inet dhcp
+EOF
+
+# This obviously has to be changed to whatever DNS address you have on your network
+cat <<EOF >> /target/etc/systemd/resolved.conf
+
+# DNS resolver configuration added during Debian installation (uki-generator)
+DNS=192.168.13.254
+Domains=~.
+EOF
+
+# Add a simple file to inform the system it's been generated with this script on next boot
+touch /target/uki
