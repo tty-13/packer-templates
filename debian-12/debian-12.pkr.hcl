@@ -68,6 +68,10 @@ variable "balloon" {
   type    = string
   default = "0" # 0 -> Ballooning disabled
 }
+variable "bootloader" {
+  type = string
+  default = "uki"
+}
 
 
 # ___  ____ ____ _  _ _  _ ____ _  _    _  _ _  _    _  _ ____ ____ _  _ _ _  _ ____
@@ -164,9 +168,14 @@ source "proxmox-iso" "debian-12" {
   # BOOT COMMAND
   boot_wait = "10s"
   boot_command = [
-    "<wait5><down><enter><down><down><enter><wait30>",
-    "http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
-    "<enter>"
+    "<wait5>c<wait2>",
+    "linux /linux auto=true priority=critical ",
+    "url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+    "bootloader=${var.bootloader}",
+    "vga=788 --- quiet",
+    "<enter><wait3>",
+    "initrd /initrd.gz",
+    "<enter><wait3>boot<enter>"
   ]
 
   # HTTP Server to provision the config files
@@ -179,7 +188,7 @@ source "proxmox-iso" "debian-12" {
   communicator         = "ssh"
   ssh_password       = "${var.ssh_password}"
   ssh_username       = "${var.ssh_username}"
-  ssh_wait_timeout   = "45m"
+  ssh_wait_timeout   = "30m"
 }
 
 
