@@ -11,11 +11,8 @@
 #  |__] |  | [__   |  __ | |\ | [__   |  |__| |    |       [__  |    |__/ | |__]  |
 #  |    |__| ___]  |     | | \| ___]  |  |  | |___ |___    ___] |___ |  \ | |     |
 
-# This script is loosely inspired from Fabricio Boreli's post-install script
-# https://gitlab.com/fabricioboreli.eti.br/packer_debian²_bullseye_kvm
-#
-# I included some more security options for use in production, added bugfixes and
-# tailored it to fit my needs
+# Some bits of code here are taken from  https://gitlab.com/fabricioboreli.eti.br/packer_debian_bullseye_kvm
+# I included a lot more security options for use in production, added bugfixes and tailored it to fit my needs
 
 # Fail on error
 set -euo pipefail
@@ -27,16 +24,21 @@ IFS=$'\n\t'
 # |__] |  \ |__| |__]
 #
 
-# mount /boot -vo remount
-# # Reduce timeout
-# sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
-# # Disable consistent interface device naming and enable serial tty
-# sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0"/' /etc/default/grub
-# # Disable quiet boot
-# sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
-# # Apply grub changes
-# grub-mkconfig -vo /boot/grub/grub.cfg
-# update-grub
+# If present, configure GRUB
+if [ ! -f /uki ]; then
+  echo "VM was generated with GRUB as main bootloader"
+  mount /boot -vo remount
+  # Reduce timeout
+  sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+  # Disable consistent interface device naming and enable serial tty
+  sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0"/' /etc/default/grub
+  # Disable quiet boot
+  sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
+  # Apply grub changes
+  grub-mkconfig -vo /boot/grub/grub.cfg
+  update-grub
+else echo "VM was generated with UKI, skipping GRUB configuration" && rm /uki
+fi
 
 # ____ ____ ___ ____ ___
 # |___ [__   |  |__| |__]
