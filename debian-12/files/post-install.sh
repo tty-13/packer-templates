@@ -22,22 +22,21 @@ set -euo pipefail
 # Whatever that is
 IFS=$'\n\t'
 
-
 # ____ ____ _  _ ___
 # | __ |__/ |  | |__]
 # |__] |  \ |__| |__]
 #
 
-mount /boot -vo remount
-# Reduce timeout
-sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
-# Disable consistent interface device naming and enable serial tty
-sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0"/' /etc/default/grub
-# Disable quiet boot
-sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
-# Apply grub changes
-grub-mkconfig -vo /boot/grub/grub.cfg
-update-grub
+# mount /boot -vo remount
+# # Reduce timeout
+# sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+# # Disable consistent interface device naming and enable serial tty
+# sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0"/' /etc/default/grub
+# # Disable quiet boot
+# sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
+# # Apply grub changes
+# grub-mkconfig -vo /boot/grub/grub.cfg
+# update-grub
 
 # ____ ____ ___ ____ ___
 # |___ [__   |  |__| |__]
@@ -48,65 +47,36 @@ update-grub
 sed -i "s|XXXX-XXXX|$(findmnt --output=UUID --noheadings --target=/boot/efi)|" /tmp/fstab
 cat /tmp/fstab > /etc/fstab
 
-# Configure DPKG to remount the filesystem properly before and after it is run
-cat <<EOF > /usr/local/bin/dpkg-remount-pre
-#!/bin/sh
-echo "Running pre-dpkg remount hooks..."
-mount /usr -vo remount,rw && echo "/usr remounted writable"
-mount /opt -vo remount,rw && echo "/opt remounted writable"
-mount /tmp -vo remount,exec && echo "/tmp remounted executable"
-mount /var/tmp -vo remount,exec && "/var/tmp remounted executable"
-mount /var -vo remount,exec && echo "/var remounted executable"
-if mount | grep /boot > /dev/null; then
-    echo "/boot already mounted"
-else
-    mount /boot && echo "/boot mounted"
-fi
-if mount | grep /boot/efi > /dev/null; then
-    echo "/boot/efi already mounted"
-else
-    mount /boot/efi && echo "/boot/efi mounted"
-fi
-EOF
-
-cat <<EOF > /usr/local/bin/dpkg-remount-post
-#!/bin/bash
-echo "Running post-dpkg remount hook..."
-mount /usr -vo remount && echo "/usr remounted "
-mount /opt -vo remount && echo "/opt remounted "
-mount /tmp -vo remount && echo "/tmp remounted "
-mount /var/tmp -vo remount && echo "/var/tmp remounted "
-mount /var -vo remount && echo "/var remounted "
-# Unmount BOOT if it is set to noauto in fstab
-if [[ \$(grep "/boot.*noauto" /etc/fstab) > /dev/null ]] && [[ \$(grep "/boot/efi.*noauto" /etc/fstab) > /dev/null ]]; then
-  umount -qR /boot && echo "Boot partitions unmounted"
-else
-  echo "Boot partitions in fstab are not set to noauto, they will not be unmounted"
-fi
-EOF
-
-chmod +x /usr/local/bin/dpkg-remount-pre /usr/local/bin/dpkg-remount-post
-
-cat <<EOF > /etc/apt/apt.conf.d/50remount
-DPkg
-{
-    Pre-Invoke  { "/usr/local/bin/dpkg-remount-pre" };
-    Post-Invoke { "/usr/local/bin/dpkg-remount-post" };
-};
-EOF
-
-
 # ___  ____ ____ _  _ ____ ____ ____ ____
 # |__] |__| |    |_/  |__| | __ |___ [__
 # |    |  | |___ | \_ |  | |__] |___ ___]
 #
 
+# This has been deprecated in systemd 253-4
+# Keeping this fix around  as a comment because it seem the bug is still there,
+# they only avoid it by preventing localectl from setting keymaps altogether...
+#
 # Fix the keyboard mapping bug that has been around for >=10y...
-wget https://www.kernel.org/pub/linux/utils/kbd/kbd-2.7.1.tar.gz -vo /tmp/kbd-2.7.1.tar.gz
-cd /tmp && tar xzf kbd-2.7.1.tar.gz
-mkdir -p /usr/share/keymaps
-cp -Rp /tmp/kbd-2.7.1/data/keymaps/* /usr/share/keymaps/
-localectl set-keymap fr-pc
+# wget https://www.kernel.org/pub/linux/utils/kbd/kbd-2.7.1.tar.gz -O /tmp/kbd-2.7.1.tar.gz
+# cd /tmp && tar xzf kbd-2.7.1.tar.gz
+# mkdir -p /usr/share/keymaps
+# cp -Rp /tmp/kbd-2.7.1/data/keymaps/* /usr/share/keymaps/
+# localectl set-keymap fr-pc
+
+# Instead, this is the new fix :
+cat <<EOF > /etc/default/keyboard
+# KEYBOARD CONFIGURATION FILE
+
+# Consult the keyboard(5) manual page.
+
+XKBMODEL="pc105"
+XKBLAYOUT="fr"
+XKBVARIANT=""
+XKBOPTIONS=""
+
+BACKSPACE="guess"
+EOF
+setupcon
 
 # Configure localepurge to remove unused locales. This makes the image smaller.
 echo "localepurge	localepurge/use-dpkg-feature	boolean	true" | debconf-set-selections
@@ -124,6 +94,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install \
   qemu-guest-agent \
   pollinate \
   xxd \
+  --yes
+
+# System
+DEBIAN_FRONTEND=noninteractive apt-get install \
+  systemd-boot \
   --yes
 
 # Some essentials
@@ -156,25 +131,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install \
 # |___  |  |___
 #
 
-# Networking set to auto
-cat <<EOF > /etc/network/interfaces
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
-
-source /etc/network/interfaces.d/*
-
-# The loopback network interface
-auto lo
-iface lo inet loopback
-
-# The primary network interface
-auto eth0
-allow-hotplug eth0
-iface eth0 inet dhcp
-EOF
-
 update-alternatives --set editor /usr/bin/vim.basic
-
 
 # Configure Pollinate to use ubuntu entropy server
 sed -i 's/^SERVER=.*/SERVER="https:\/\/entropy.ubuntu.com\/"/' /etc/default/pollinate
@@ -281,9 +238,9 @@ systemctl enable serial-getty@ttyS0.service
 # Reload the daemon to take into account previous modifications
 systemctl daemon-reload
 
-# ____ _    ____ ____ _  _  _  _ ___
-# |    |    |___ |__| |\ |  |  | |__]
-# |___ |___ |___ |  | | \|  |__| |
+# _  _ _  _ ____ _    _  _ ___ ___ ____ ____
+# |  | |\ | |    |    |  |  |   |  |___ |__/
+# |__| | \| |___ |___ |__|  |   |  |___ |  \
 #
 
 # Remove all but the lastest kernel
@@ -303,6 +260,63 @@ DEBIAN_FRONTEND=noninteractive apt-get autoremove \
   tasksel-data \
   --purge --yes
 DEBIAN_FRONTEND=noninteractive apt-get clean
+
+# ___  ___  _  _ ____    _  _ ____ ____ _  _ ____
+# |  \ |__] |_/  | __    |__| |  | |  | |_/  [__
+# |__/ |    | \_ |__]    |  | |__| |__| | \_ ___]
+#
+
+# Configure DPKG to remount the filesystem properly before and after it is run
+cat <<EOF > /usr/local/bin/dpkg-remount-pre
+#!/bin/sh
+echo "Running pre-dpkg remount hooks..."
+mount /usr -vo remount,rw && echo "/usr remounted writable"
+mount /opt -vo remount,rw && echo "/opt remounted writable"
+mount /tmp -vo remount,exec && echo "/tmp remounted executable"
+mount /var/tmp -vo remount,exec && echo "/var/tmp remounted executable"
+mount /var -vo remount,exec && echo "/var remounted executable"
+if mount | grep /boot > /dev/null; then
+    echo "/boot already mounted"
+else
+    mount /boot && echo "/boot mounted"
+fi
+if mount | grep /boot/efi > /dev/null; then
+    echo "/boot/efi already mounted"
+else
+    mount /boot/efi && echo "/boot/efi mounted"
+fi
+EOF
+
+cat <<EOF > /usr/local/bin/dpkg-remount-post
+#!/bin/bash
+echo "Running post-dpkg remount hook..."
+mount /usr -vo remount && echo "/usr remounted "
+mount /opt -vo remount && echo "/opt remounted "
+mount /tmp -vo remount && echo "/tmp remounted "
+mount /var/tmp -vo remount && echo "/var/tmp remounted "
+mount /var -vo remount && echo "/var remounted "
+# Unmount BOOT if it is set to noauto in fstab
+if [[ \$(grep "/boot.*noauto" /etc/fstab) > /dev/null ]] && [[ \$(grep "/boot/efi.*noauto" /etc/fstab) > /dev/null ]]; then
+  umount -qR /boot && echo "Boot partitions unmounted"
+else
+  echo "Boot partitions in fstab are not set to noauto, they will not be unmounted"
+fi
+EOF
+
+chmod +x /usr/local/bin/dpkg-remount-pre /usr/local/bin/dpkg-remount-post
+
+cat <<EOF > /etc/apt/apt.conf.d/50remount
+DPkg
+{
+    Pre-Invoke  { "/usr/local/bin/dpkg-remount-pre" };
+    Post-Invoke { "/usr/local/bin/dpkg-remount-post" };
+};
+EOF
+
+# ____ _    ____ ____ _  _  _  _ ___
+# |    |    |___ |__| |\ |  |  | |__]
+# |___ |___ |___ |  | | \|  |__| |
+#
 
 # Remove artifacts to make the image more agnostic
 find \
@@ -339,11 +353,7 @@ sync
 # |__| |__|  |  |    |__|  |
 #
 
-echo "\nPost-install script ended sucessfully, printing some info about the VM...\n"
-
-echo "The following executables have the suid bit set :"
-find / -perm -u=s -type f 2>/dev/null
-echo "\n"
+echo "Post-install script ended sucessfully, printing some info about the VM.."
 
 # Display some disk, partition, and usage information to packer output
 lsblk
