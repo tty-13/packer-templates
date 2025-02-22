@@ -14,9 +14,7 @@
 # Some bits of code here are taken from  https://gitlab.com/fabricioboreli.eti.br/packer_debian_bullseye_kvm
 # I included a lot more security options for use in production, added bugfixes and tailored it to fit my needs
 
-# Fail on error
 set -euo pipefail
-# Whatever that is
 IFS=$'\n\t'
 
 # ____ ____ _  _ ___
@@ -35,7 +33,7 @@ if [ ! -f /uki ]; then
   # Disable quiet boot
   sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
   # Apply grub changes
-  grub-mkconfig -vo /boot/grub/grub.cfg
+  grub-mkconfig -o /boot/grub/grub.cfg
   update-grub
 else echo "VM was generated with UKI, skipping GRUB configuration" && rm /uki
 fi
