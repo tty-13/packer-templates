@@ -1,9 +1,9 @@
 #!/bin/sh
 set -x
 
-# Configure Unified Kernel Image 
+# Configure Unified Kernel Image
 cat <<EOF > /target/etc/kernel/cmdline
-root=/dev/mapper/vg_root-root net.ifnames=0 biosdevname=0 console=ttyS0
+root=/dev/mapper/vg_root-root net.ifnames=0 biosdevname=0 console=ttyS0 iommu=force page_poison=on pti=on slab_nomerge=yes slub_debug=FZP spec_store_bypass_disable=seccomp spectre_v2=on mds=full mce=0 page_alloc.shuffle=1
 EOF
 
 cat <<EOF > /target/etc/kernel/install.conf
