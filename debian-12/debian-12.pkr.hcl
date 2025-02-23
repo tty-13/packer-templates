@@ -90,7 +90,7 @@ source "proxmox-iso" "debian-12" {
   # VM Definition
   node                 = "tty13"
   vm_id                = "501"
-  vm_name              = "debian-12-T{{ isotime `0601`}}"
+  vm_name              = "debian-12-T{{ isotime `0106`}}-${var.bootloader}"
   template_description = "Debian 12.8.0 Bare template"
   tags                 = "t" # Semicolon separated list (e.g. "SaaS;infra")
 

@@ -178,7 +178,7 @@ source "proxmox-iso" "opnsense" {
   # VM Definition
   node                 = "tty13"
   vm_id                = "500"
-  vm_name              = "opnsense-T{{ isotime `0601`}}"
+  vm_name              = "opnsense-T{{ isotime `0106`}}"
   template_description = "OPNsense 24.7 VM template"
   tags                 = "t;fw;infra" # Semicolon separated list (e.g. "SaaS;infra")
 
