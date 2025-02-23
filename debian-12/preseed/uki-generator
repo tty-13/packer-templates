@@ -3,7 +3,7 @@ set -x
 
 # Configure Unified Kernel Image 
 cat <<EOF > /target/etc/kernel/cmdline
-root=/dev/mapper/vg_root-root net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0
+root=/dev/mapper/vg_root-root net.ifnames=0 biosdevname=0 console=ttyS0
 EOF
 
 cat <<EOF > /target/etc/kernel/install.conf
@@ -19,8 +19,8 @@ EOF
 
 # Install systemd-boot (and ukify from bookworm-backports)
 # OVMF bios supports UEFI Secure Boot,# but in the current state,
-# this support is mainly used as a way to # test and provide compatibility rather
-# than really secure the VM. (Moreover, it does not provide a way to password
+# this support is mainly used as a way and provide testing ground and compatibility
+# rather than really secure the VM. (Moreover, it does not provide a way to password
 # protect the firmware configuration, rendering Secure Boot pointless)
 # To further understand why it is not secure, see "Known Secure Boot limitations" :
 # https://www.linux-kvm.org/downloads/lersek/ovmf-whitepaper-c770f8c.txt

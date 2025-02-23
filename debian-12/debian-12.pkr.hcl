@@ -123,7 +123,7 @@ source "proxmox-iso" "debian-12" {
 
   # Display
   vga {
-    type = "std" //serial0
+    type = "serial0"
   }
   serials = ["socket"]
 
@@ -166,13 +166,18 @@ source "proxmox-iso" "debian-12" {
   cloud_init_disk_type    = "scsi" # Add CI drive as scsi, prevents bug #973 (ide CI drive not working on q35 images)
 
   # BOOT COMMAND
+  #
+  # N.B.: set DEBCONF_DEBUG to user, developer or db for more verbosity
+  # BOOT_DEBUG to 1/2 is more verbose, 3 is for drop-in shells
   boot_wait = "10s"
   boot_command = [
     "<wait5>c<wait2>",
     "linux /linux auto=true priority=critical ",
     "url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-    "bootloader=${var.bootloader}",
-    "vga=788 --- quiet",
+    "bootloader=${var.bootloader} ",
+    "DEBIAN_FRONTEND=newt theme=dark ",
+    "DEBCONF_DEBUG=user BOOT_DEBUG=1 ",
+    "console=ttyS0 ---",
     "<enter><wait3>",
     "initrd /initrd.gz",
     "<enter><wait3>boot<enter>"
