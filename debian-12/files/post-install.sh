@@ -29,7 +29,7 @@ if [ ! -f /uki ]; then
   # Reduce timeout
   sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
   # Disable consistent interface device naming and enable serial tty
-  sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=tty1 console=ttyS0"/' /etc/default/grub
+sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=ttyS0 hardened_usercopy=1 init_on_alloc=1 init_on_free=1 module.sig_enforce=1 randomize_kstack_offset=on page_alloc.shuffle=1 slab_nomerge pti=on slub_debug=ZF intel-iommu=on iommu.passthrough=0 iommu.strict=1 mitigations=auto lockdown=confidentiality kfence.sample_interval=100 apparmor=1 security=apparmor"/' /etc/default/grub
   # Disable quiet boot
   sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
   # Apply grub changes
@@ -136,6 +136,73 @@ update-alternatives --set editor /usr/bin/vim.basic
 # Configure Pollinate to use ubuntu entropy server
 sed -i 's/^SERVER=.*/SERVER="https:\/\/entropy.ubuntu.com\/"/' /etc/default/pollinate
 
+# sysctl.conf
+cat <<EOF > /etc/sysctl.d/security.conf
+# Some KSSP/ANSSI/&al security recommendations
+
+# Prevent non-authorized access to dmesg log (users must have CAP_SYSLOG to use dmesg)
+kernel.dmesg_restrict  1
+
+# Hide kernel pointers regardless of the user's privilege
+kernel.kptr_restrict = 2
+
+# Reduce kernel max number of PIDs, keep this number as low as possible
+# run ps -efL | wc -l to check the actual number of PIDs on your system
+# and set this limit accordingly
+kernel.pid_max = 4096
+
+# Disable non-authorized profiling
+kernel.perf_event_paranoid = 3
+
+# Disable kexec (prevent loading another kernel without reboot)
+kernel.kexec_load_disabled = 1
+
+# Enable all available Address Space Randomization (ASLR) for userspace processes
+kernel.randomize_va_space =2
+
+# Block all PTRACE_ATTACH.
+kernel.yama.ptrace_scope = 3
+
+# Disable User Namespaces, as it opens up a large attack surface to unprivileged users
+# Currently commented out, using a more permissive option
+# user.max_user_namespaces = 0
+kernel.unprivileged_userns_clone = 0
+
+# Disable tty line discipline autoloading
+dev.tty.ldisc_autoload = 0
+
+# Disable TIOCSTI which is used to inject keypresses
+dev.tty.legacy_tiocsti = 0
+
+# BPF
+kernel.unprivileged_bpf_disabled = 1
+net.core.bpf_jit_harden = 2
+
+# Disable dangerous userfaultfd usage.
+vm.unprivileged_userfaultfd = 0
+
+# Disable POSIX symlink and hardlink corner cases that lead to lots of filesystem confusion attacks
+fs.protected_symlinks = 1
+fs.protected_hardlinks = 1
+
+# Disable POSIX corner cases with creating files and fifos unless the directory owner matches
+fs.protected_fifos = 2
+fs.protected_regular = 2
+
+# Make sure the default process dumpability is set (processes that changed privileges aren't dumpable).
+fs.suid_dumpable = 0
+kernel.core_uses_pid = 1
+
+# Disable magic SysRq key (mostly disabled by default) and ctrl-alt-del
+kernel.sysrq =0
+kernel.ctrl-alt-del=0
+
+# Panic on error and limit max warnings
+kernel.panic_on_oops =1
+kernel.warn_limit = 3
+kernel.oops_limit = 1
+EOF
+
 # ____ _    ____ _  _ ___     _ _  _ _ ___
 # |    |    |  | |  | |  \ __ | |\ | |  |
 # |___ |___ |__| |__| |__/    | | \| |  |
@@ -234,6 +301,9 @@ systemctl enable qemu-guest-agent
 
 # Serial console
 systemctl enable serial-getty@ttyS0.service
+
+# Apparmor
+systemctl enable apparmor.service
 
 # Reload the daemon to take into account previous modifications
 systemctl daemon-reload
