@@ -79,7 +79,7 @@ variable "bootloader" {
 # |    |  \ |__| _/\_ |  | |__| _/\_     \/  |  |    |  | |  | |___ |  | | | \| |___
 #
 
-source "proxmox-iso" "debian-12" {
+source "proxmox-iso" "debian12" {
 
   # Proxmox Connection Settings
   proxmox_url = "${var.proxmox_api_url}"
