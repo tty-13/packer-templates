@@ -1,13 +1,12 @@
 /*
-  _____       _     _               __ ___    _   _______ _____
- |  __ \     | |   (_)             /_ |__ \  | | |__   __/ ____|
- | |  | | ___| |__  _  __ _ _ __    | |  ) | | |    | | | (___
- | |  | |/ _ \ '_ \| |/ _` | '_ \   | | / /  | |    | |  \___ \
- | |__| |  __/ |_) | | (_| | | | |  | |/ /_  | |____| |  ____) |
- |_____/ \___|_.__/|_|\__,_|_| |_|  |_|____| |______|_| |_____/
+  _____       _     _               __ ____
+ |  __ \     | |   (_)             /_ |___ \
+ | |  | | ___| |__  _  __ _ _ __    | | __) |
+ | |  | |/ _ \ '_ \| |/ _` | '_ \   | ||__ <
+ | |__| |  __/ |_) | | (_| | | | |  | |___) |
+ |_____/ \___|_.__/|_|\__,_|_| |_|  |_|____/
 
-  Packer Template to create a bare Debian 12.8.0 VM on Proxmox
-  
+ Bare Debian 13 VM on Proxmox Packer template
 */
 
 # ___  ____ ___  ____ _  _ ___  ____ _  _ ____ _ ____ ____
@@ -79,7 +78,7 @@ variable "bootloader" {
 # |    |  \ |__| _/\_ |  | |__| _/\_     \/  |  |    |  | |  | |___ |  | | | \| |___
 #
 
-source "proxmox-iso" "debian12" {
+source "proxmox-iso" "debian13" {
 
   # Proxmox Connection Settings
   proxmox_url = "${var.proxmox_api_url}"
@@ -89,9 +88,9 @@ source "proxmox-iso" "debian12" {
 
   # VM Definition
   node                 = "tty13"
-  vm_id                = "501"
-  vm_name              = "debian-12-T{{ isotime `0106`}}-${var.bootloader}"
-  template_description = "Debian 12.8.0 Bare template"
+  vm_id                = "502"
+  vm_name              = "debian-13-T{{ isotime `0106`}}-${var.bootloader}"
+  template_description = "Debian 13 Bare template"
   tags                 = "t" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
@@ -99,8 +98,8 @@ source "proxmox-iso" "debian12" {
   os         = "l26" # Linux kernel >=2.6 optimizations
   boot_iso {
     iso_storage_pool = "local"
-    iso_url          = "https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/current/images/netboot/mini.iso"
-    iso_checksum     = "file:https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/current/images/SHA256SUMS"
+    iso_url          = "https://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/netboot/mini.iso"
+    iso_checksum     = "file:https://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/SHA256SUMS"
     iso_download_pve = true # Download ISO from Proxmox directly
     unmount          = true
   }
@@ -204,8 +203,8 @@ source "proxmox-iso" "debian12" {
 
 build {
 
-  name    = "debian-12-template"
-  sources = ["source.proxmox-iso.debian12"]
+  name    = "debian-13-template"
+  sources = ["source.proxmox-iso.debian13"]
 
   provisioner "file" {
     destination = "/tmp/post-install.sh"

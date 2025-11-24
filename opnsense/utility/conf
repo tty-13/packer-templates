@@ -1,0 +1,17 @@
+
+# USER CONFIGURATION
+# Provide plain text password or bcrypt hash
+root_password =
+# If left blank, will skip user creation
+user          = p
+# Plain text or bcrypt hash
+user_password =
+user_pubkey      =
+
+# SSH CONFIGURATION
+ssh = 1
+ssh_port = 2222
+
+# SYSTEM
+# This will also install plugins
+upgrade_packages = yes

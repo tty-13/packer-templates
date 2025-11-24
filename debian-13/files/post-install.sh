@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-
+#
 # oooooooooo.              .o8        o8o                               .o    .oooo.
 # `888'   `Y8b            "888        `"'                             o888  .dP""Y88b
 #  888      888  .ooooo.   888oooo.  oooo   .oooo.   ooo. .oo.         888        ]8P'
-#  888      888 d88' `88b  d88' `88b `888  `P  )88b  `888P"Y88b        888      .d8P'
-#  888      888 888ooo888  888   888  888   .oP"888   888   888        888    .dP'
-#  888     d88' 888    .o  888   888  888  d8(  888   888   888        888  .oP     .o
-# o888bood8P'   `Y8bod8P'  `Y8bod8P' o888o `Y888""8o o888o o888o      o888o 8888888888
+#  888      888 d88' `88b  d88' `88b `888  `P  )88b  `888P"Y88b        888      <88b.
+#  888      888 888ooo888  888   888  888   .oP"888   888   888        888       `88b.
+#  888     d88' 888    .o  888   888  888  d8(  888   888   888        888  o.   .88P
+# o888bood8P'   `Y8bod8P'  `Y8bod8P' o888o `Y888""8o o888o o888o      o888o `8bd88P'
 #  ___  ____ ____ ___    _ _  _ ____ ___ ____ _    _       ____ ____ ____ _ ___  ___
 #  |__] |  | [__   |  __ | |\ | [__   |  |__| |    |       [__  |    |__/ | |__]  |
 #  |    |__| ___]  |     | | \| ___]  |  |  | |___ |___    ___] |___ |  \ | |     |
@@ -317,10 +317,8 @@ systemctl daemon-reload
 DEBIAN_FRONTEND=noninteractive apt-get autoremove --yes --purge $(dpkg -l "linux-image*" | grep "^ii" | grep -v linux-image-cloud-amd64 | head -n -1 | cut -d " " -f 3)
 
 # Remove package clutter
-DEBIAN_FRONTEND=noninteractive apt-get install --yes deborphan # Let's try to remove some more
+DEBIAN_FRONTEND=noninteractive apt-mark minimize-manual
 DEBIAN_FRONTEND=noninteractive apt-get autoremove \
-  $(deborphan) \
-  deborphan \
   dictionaries-common \
   iamerican \
   ibritish \
@@ -392,7 +390,6 @@ EOF
 find \
   /var/cache/apt \
   /var/lib/apt \
-  /var/lib/dhcp \
   /var/log \
   ! -name "audit" \
   -mindepth 1 -print -delete
