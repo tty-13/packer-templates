@@ -91,7 +91,7 @@ source "proxmox-iso" "debian13" {
   vm_id                = "502"
   vm_name              = "debian-13-T{{ isotime `0106`}}-${var.bootloader}"
   template_description = "Debian 13 Bare template"
-  tags                 = "t" # Semicolon separated list (e.g. "SaaS;infra")
+  tags                 = "template" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
   qemu_agent = true

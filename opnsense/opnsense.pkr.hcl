@@ -180,7 +180,7 @@ source "proxmox-iso" "opnsense" {
   vm_id                = "500"
   vm_name              = "opnsense-T{{ isotime `0106`}}"
   template_description = "OPNsense 24.7 VM template"
-  tags                 = "t;fw;infra" # Semicolon separated list (e.g. "SaaS;infra")
+  tags                 = "template" # Semicolon separated list (e.g. "SaaS;infra")
 
   # OS
   qemu_agent = true
