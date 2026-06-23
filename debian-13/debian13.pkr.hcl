@@ -17,7 +17,7 @@
 packer {
   required_plugins {
     proxmox = {
-      version = "1.2.1"
+      version = "~>1.2.1"
       source  = "github.com/hashicorp/proxmox"
     }
   }
@@ -53,7 +53,7 @@ variable "ssh_password" {
 //
 variable "lan_bridge" {
   type    = string
-  default = "vmbr1"
+  default = "vmbr3"
 }
 variable "cpu_cores" {
   type    = string
