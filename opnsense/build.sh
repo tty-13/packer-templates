@@ -25,7 +25,7 @@ sed -e "s|<password>.*</password>|<password>$(cat $HERE/packerpwd.tmp)</password
 sed -e "s|<authorizedkeys>.*</authorizedkeys>|<authorizedkeys>$(cat $HERE/packerkey.base64)</authorizedkeys>|" -i $CONF
 
 # build the VM
-packer build -var-file="$HERE/../proxmox_api_credentials.pkr.hcl" -var-file="$HERE/credentials.pkr.hcl" $HERE/opnsense.pkr.hcl
+packer build -force -var-file="$HERE/../proxmox_api_credentials.pkr.hcl" -var-file="$HERE/credentials.pkr.hcl" $HERE/opnsense.pkr.hcl
 
 # Remove temporary credentials
 rm -f $HERE/packerkey*
