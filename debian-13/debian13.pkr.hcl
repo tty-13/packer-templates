@@ -137,18 +137,7 @@ source "proxmox-iso" "debian13" {
   # Storage
   scsi_controller = "virtio-scsi-single"
   disks {
-    disk_size    = "64G"
-    format       = "raw"
-    storage_pool = "local-zfs"
-    type         = "scsi"
-    cache_mode   = "writeback"
-    io_thread    = true
-    asyncio      = "io_uring"
-    discard      = true
-    ssd          = true
-  }
-  disks {
-    disk_size    = "64G"
+    disk_size    = "32G"
     format       = "raw"
     storage_pool = "local-zfs"
     type         = "scsi"
