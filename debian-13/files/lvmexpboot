@@ -1,0 +1,80 @@
+#!/bin/bash
+# /usr/sbin/lvmexpboot
+# Utility to resize lvm partition according to proportions defined in /etc/lvmexpboot.conf
+# Usually called at boot time by cloud-init, see /etc/cloud/cloud.cfg.d/90_lvmexpboot.cfg
+
+. /etc/lvmexpboot.conf
+[ $DEBUG -eq 1 ] && t="-t"
+
+total_free=$(vgs -o vg_free --units s --nosuffix --noheadings "$VG_ROOT")
+total_aftermax=$total_free
+lvs=$LVS
+
+# declare and populate the new size array
+declare -A lv_resized
+
+for lv in "${LVS[@]}"; do
+  name_lv="PATH_${lv}"
+  name_lv=${!name_lv}
+  initsize_lv=$(lvs -o size --units s --nosuffix --noheadings ${VG_ROOT}/${name_lv})
+  lv_resized["$name_lv"]="$initsize_lv"
+done
+
+printf "Total free space on ${VG_ROOT} : $(( $total_free / 2048 )) MiB\n"
+for lv in ${!lv_resized[*]}; do
+  echo "Current size for $lv : $(( ${lv_resized[$lv]} / 2048 )) MiB";
+done
+printf "\nComputing partition spaces...\n\n"
+
+# Total free should be at least 4 MiB (8192 sectors / 1 PE) to avoid starving lvresize
+while [[ total_free -gt 8192 && "${#LVS[@]}" > 0 ]]; do
+  # Loop through the volumes and get their properties
+  for lv in "${LVS[@]}"; do
+    ratio_lv="RATIO_${lv}"
+    maxs_lv="MAXS_${lv}"
+    name_lv="PATH_${lv}"
+    ratio_lv=${!ratio_lv}
+    maxs_lv=$(( ${!maxs_lv} * 2097152 ))
+    name_lv=${!name_lv}
+    initsize_lv=$(lvs -o size --units s --nosuffix --noheadings ${VG_ROOT}/${name_lv})
+    incrsize_lv=$(( total_free * ratio_lv / 100 ))
+    computedsize_lv=$(( initsize_lv + incrsize_lv ))
+
+    # if already at max size, skip and remove from loop
+    if [[ initsize_lv -ge maxs_lv ]]; then
+      for i in "${!LVS[@]}"; do
+        if [[ ${LVS[i]} = $lv ]]; then
+          unset 'LVS[i]'
+          unset 'lv_resized[$name_lv]'
+        fi
+      done
+
+    # if the computed size reaches max size, set to max and remove from loop
+    elif [[ $computedsize_lv -ge maxs_lv ]]; then
+      for i in "${!LVS[@]}"; do
+        if [[ ${LVS[i]} = $lv ]]; then
+          unset 'LVS[i]'
+        fi
+      done
+      lv_resized["$name_lv"]="$maxs_lv"
+      total_aftermax=$((total_aftermax - maxs_lv + initsize_lv))
+
+    # if the computed size is allowed, increment and loop again to distribute
+    else
+      lv_resized["$name_lv"]="$(( lv_resized["$name_lv"] + $incrsize_lv ))"
+      total_aftermax=$((total_aftermax - incrsize_lv))
+    fi
+  done
+  # after looping, set the total free to its new size
+  total_free=$total_aftermax
+done
+
+for lv in ${!lv_resized[*]}; do
+  echo "New size for $lv : $(( ${lv_resized[$lv]} / 2048 )) MiB"
+done
+
+echo ""
+for lv in ${!lv_resized[*]}; do
+  lvresize ${t} -L ${lv_resized[$lv]}s -r /dev/${VG_ROOT}/${lv}
+  echo ""
+done
