@@ -75,6 +75,8 @@ done
 
 echo ""
 for lv in ${!lv_resized[*]}; do
+  mount -o remount,rw /dev/${VG_ROOT}/${lv}
   lvresize ${t} -L ${lv_resized[$lv]}s -r /dev/${VG_ROOT}/${lv}
+  mount -o remount /dev/${VG_ROOT}/${lv}
   echo ""
 done
