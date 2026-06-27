@@ -303,7 +303,7 @@ EOF
 mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d/
 cat <<EOF > /etc/systemd/system/serial-getty@ttyS0.service.d/wait-cloudinit.conf
 [Unit]
-Before=cloud-init.target
+After=cloud-init.target
 EOF
 
 # Configure the ACPI daemon to gently turn off the VM when the "power button" is pressed
