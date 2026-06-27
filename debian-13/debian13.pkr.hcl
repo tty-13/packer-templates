@@ -203,8 +203,14 @@ build {
     destination = "/tmp/fstab"
     source      = "files/fstab"
   }
-
-
+  provisioner "file" {
+    destination = "/tmp/lvmexpboot"
+    source      = "files/lvmexpboot"
+  }
+  provisioner "file" {
+    destination = "/tmp/lvmexpboot.conf"
+    source      = "files/lvmexpboot.conf"
+  }
   # Issue some commands to finish the install
   provisioner "shell" {
     inline = [

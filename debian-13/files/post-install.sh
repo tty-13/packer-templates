@@ -227,6 +227,21 @@ system_info:
    ssh_svcname: ssh
 EOF
 
+# Disks
+cat <<EOF > /etc/cloud/cloud.cfg.d/90_lvm.cfg
+# Grow disks on boot
+runcmd:
+  - [growpart, /pathtodisk, 3]
+  - [lvmexpboot]
+EOF
+
+pvd=$(pvdisplay -C --noheadings -o pv_name)
+sed -i "s|/pathtodisk|${pvd::-2}|" /etc/cloud/cloud.cfg.d/90_lvm.cfg
+
+mv /tmp/lvmexpboot.conf /etc/lvmexpboot.conf
+mv /tmp/lvmexpboot /usr/sbin/lvmexpboot
+chmod +x /usr/sbin/lvmexpboot
+
 # Security
 cat <<EOF > /etc/cloud/cloud.cfg.d/92_security.cfg
 # Don't ouput SSH keys info to the console
