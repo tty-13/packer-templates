@@ -279,15 +279,16 @@ systemctl add-wants multi-user.target cloud-init.target
 
 # Keep terminal output when boot is over
 SYSTEMD_NO_CLEAR_FILE=/etc/systemd/system/getty@tty1.service.d/no-clear.conf
-mkdir --parents "$(dirname "$SYSTEMD_NO_CLEAR_FILE")"
+mkdir -p "$(dirname "$SYSTEMD_NO_CLEAR_FILE")"
 cat <<EOF > "$SYSTEMD_NO_CLEAR_FILE"
 [Service]
 TTYVTDisallocate=no
 EOF
 # Don't start getty prompt until cloud-init has finished
-cat <<EOF > /etc/systemd/system/getty@tty1.service.d/wait-cloud-init.conf
+mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d/
+cat <<EOF > /etc/systemd/system/serial-getty@ttyS0.service.d/wait-cloudinit.conf
 [Unit]
-After=cloud-init.target
+Before=cloud-init.target
 EOF
 
 # Configure the ACPI daemon to gently turn off the VM when the "power button" is pressed
