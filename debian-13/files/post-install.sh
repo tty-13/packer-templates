@@ -203,6 +203,15 @@ kernel.warn_limit = 3
 kernel.oops_limit = 1
 EOF
 
+cat <<EOF > /etc/sysctl.d/disable_ipv6.conf
+# Fully disable IPv6 support
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+net.ipv6.conf.lo.disable_ipv6=1
+net.ipv6.conf.all.autoconf=0
+net.ipv6.conf.default.autoconf=0
+EOF
+
 # ____ _    ____ _  _ ___     _ _  _ _ ___
 # |    |    |  | |  | |  \ __ | |\ | |  |
 # |___ |___ |__| |__| |__/    | | \| |  |
