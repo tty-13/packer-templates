@@ -91,7 +91,7 @@ variable "wan_bridge" {
 }
 variable "lan_bridge" {
   type    = string
-  default = "vmbr1"
+  default = "trunk0"
 }
 variable "admin_lan_bridge" {
   type    = string

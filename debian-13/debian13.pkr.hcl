@@ -53,7 +53,7 @@ variable "ssh_password" {
 //
 variable "lan_bridge" {
   type    = string
-  default = "vmbr3"
+  default = "trunk0"
 }
 variable "cpu_cores" {
   type    = string
