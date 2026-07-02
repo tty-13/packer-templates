@@ -241,7 +241,7 @@ cat <<EOF > /etc/cloud/cloud.cfg.d/90_lvm.cfg
 # Grow disks on boot
 runcmd:
   - [growpart, /pathtodisk, 3]
-  - [lvmexpboot]
+  - lvmexpboot
 EOF
 
 pvd=$(pvdisplay -C --noheadings -o pv_name)
