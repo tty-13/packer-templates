@@ -1,4 +1,8 @@
-# Debian 12 bare VM
+# Debian 12 bare VM (DEPRECATED)
+
+DEPRECATED : I don't have time to maintain this image, it is working and likely 
+will still be for a while but I'll concentrate my efforts on the newer debian versions.
+
 This creates a very bare Debian bookworm VM template for proxmox with the following settings :
 - Q35 machine and UEFI bios
 - Cloud-init
