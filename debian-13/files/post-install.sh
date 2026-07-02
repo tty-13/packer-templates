@@ -29,7 +29,7 @@ if [ ! -f /uki ]; then
   # Reduce timeout
   sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
   # Disable consistent interface device naming and enable serial tty
-sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=ttyS0 hardened_usercopy=1 init_on_alloc=1 init_on_free=1 module.sig_enforce=1 randomize_kstack_offset=on page_alloc.shuffle=1 slab_nomerge pti=on slub_debug=ZF intel-iommu=on iommu.passthrough=0 iommu.strict=1 mitigations=auto lockdown=confidentiality kfence.sample_interval=100 apparmor=1 security=apparmor"/' /etc/default/grub
+  sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 console=ttyS0 hardened_usercopy=1 init_on_alloc=1 init_on_free=1 module.sig_enforce=1 randomize_kstack_offset=on page_alloc.shuffle=1 slab_nomerge pti=on intel-iommu=on iommu.passthrough=0 iommu.strict=1 mitigations=auto lockdown=confidentiality kfence.sample_interval=100 apparmor=1 security=apparmor"/' /etc/default/grub
   # Disable quiet boot
   sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=""/' /etc/default/grub
   # Apply grub changes
