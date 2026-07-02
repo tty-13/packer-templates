@@ -56,20 +56,24 @@ variable "lan_bridge" {
   default = "trunk0"
 }
 variable "cpu_cores" {
-  type    = string
-  default = "2"
+  type    = number
+  default = 2
 }
 variable "memory" {
-  type    = string
-  default = "8192"
+  type    = number
+  default = 8192
 }
 variable "balloon" {
-  type    = string
-  default = "0" # 0 -> Ballooning disabled
+  type    = number
+  default = 0 # 0 -> Ballooning disabled
 }
 variable "bootloader" {
   type = string
   default = "uki"
+}
+variable "packer_vlan" {
+  type = number
+  default = 999
 }
 
 
@@ -81,9 +85,9 @@ variable "bootloader" {
 source "proxmox-iso" "debian13" {
 
   # Proxmox Connection Settings
-  proxmox_url = "${var.proxmox_api_url}"
-  username    = "${var.proxmox_api_token_id}"
-  token       = "${var.proxmox_api_token_secret}"
+  proxmox_url = var.proxmox_api_url
+  username    = var.proxmox_api_token_id
+  token       = var.proxmox_api_token_secret
   insecure_skip_tls_verify = true
 
   # VM Definition
@@ -114,11 +118,11 @@ source "proxmox-iso" "debian13" {
 
   # CPU
   cpu_type = "host"
-  cores    = "${var.cpu_cores}"
+  cores    = var.cpu_cores
 
   # Memory
-  memory             = "${var.memory}"
-  ballooning_minimum = "${var.balloon}"
+  memory             = var.memory
+  ballooning_minimum = var.memory / 2
 
   # Display
   vga {
@@ -129,9 +133,10 @@ source "proxmox-iso" "debian13" {
   # Network
   network_adapters {
     model         = "virtio"
-    bridge        = "${var.lan_bridge}"
+    bridge        = var.lan_bridge
     firewall      = "false"
-    packet_queues = "${var.cpu_cores}"
+    packet_queues = var.cpu_cores
+    vlan_tag      = var.packer_vlan
   }
 
   # Storage
@@ -174,13 +179,13 @@ source "proxmox-iso" "debian13" {
   # HTTP Server to provision the config files
   http_directory = "preseed"
   # (Optional) Bind IP Address and Port
-  http_bind_address       = "${var.packer_srv}"
+  http_bind_address       = var.packer_srv
   http_port_min           = 8802
   http_port_max           = 8802
 
   communicator         = "ssh"
-  ssh_password       = "${var.ssh_password}"
-  ssh_username       = "${var.ssh_username}"
+  ssh_password       = var.ssh_password
+  ssh_username       = var.ssh_username
   ssh_wait_timeout   = "30m"
 }
 
